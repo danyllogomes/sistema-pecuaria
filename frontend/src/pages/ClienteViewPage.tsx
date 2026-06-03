@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Plus, MapPin, Phone, Building2, Clock,
-  CheckCircle, FolderOpen, Landmark, X,
+  CheckCircle, FolderOpen, Landmark, X, Pencil, Check,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PreProjetos } from '@/components/bancos/PreProjetos'
@@ -12,7 +12,7 @@ import { WizardModal } from '@/components/wizard/WizardModal'
 import { useWizardStore } from '@/store/wizardStore'
 import { useReference } from '@/hooks/useReference'
 import { sbH } from '@/lib/supabaseInternal'
-import { getProjetos, updateProjetoBancos, getProjeto } from '@/lib/supabase'
+import { getProjetos, updateProjetoBancos, updateProjetoNome, getProjeto } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import type { Cliente, MinhaInfo, Projeto, BancoProgress } from '@/types'
@@ -71,6 +71,8 @@ export function ClienteViewPage({ minhaInfo }: Props) {
   const [loading, setLoading] = useState(true)
   const [showAddBanco, setShowAddBanco] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [editingNomeId, setEditingNomeId] = useState<string | null>(null)
+  const [editingNomeValue, setEditingNomeValue] = useState('')
   const { open, openNew } = useWizardStore()
   const { ref } = useReference()
 
@@ -135,6 +137,25 @@ export function ClienteViewPage({ minhaInfo }: Props) {
     } finally {
       setSaving(false)
       setShowAddBanco(false)
+    }
+  }
+
+  const startEditNome = (projeto: Projeto, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setEditingNomeId(projeto.id)
+    setEditingNomeValue(projeto.nome)
+  }
+
+  const saveNome = async (projetoId: string) => {
+    const nome = editingNomeValue.trim()
+    if (!nome || !cliente) { setEditingNomeId(null); return }
+    setSaving(true)
+    try {
+      await updateProjetoNome(projetoId, nome)
+      await loadProjetos(cliente.id)
+    } finally {
+      setSaving(false)
+      setEditingNomeId(null)
     }
   }
 
@@ -219,18 +240,59 @@ export function ClienteViewPage({ minhaInfo }: Props) {
             {projetos.map(projeto => {
               const bancosEntries = Object.entries(projeto.bancos_status ?? {})
               const isSelected = selectedProjetoId === projeto.id
+              const isEditingNome = editingNomeId === projeto.id
               return (
-                <button
+                <div
                   key={projeto.id}
-                  onClick={() => { setSelectedProjetoId(projeto.id); setSelectedBancoId(null) }}
+                  onClick={() => { if (!isEditingNome) { setSelectedProjetoId(projeto.id); setSelectedBancoId(null) } }}
                   className={cn(
-                    'w-full text-left rounded-xl border px-3 py-3 transition-all',
+                    'w-full text-left rounded-xl border px-3 py-3 transition-all cursor-pointer',
                     isSelected
                       ? 'bg-white border-zinc-300 shadow-sm'
                       : 'bg-white border-zinc-100 hover:border-zinc-200 hover:shadow-sm'
                   )}
                 >
-                  <p className="text-sm font-semibold text-zinc-800 truncate">{projeto.nome}</p>
+                  {/* Nome editável */}
+                  <div className="flex items-center gap-1 group/nome">
+                    {isEditingNome ? (
+                      <div className="flex items-center gap-1 flex-1 min-w-0" onClick={e => e.stopPropagation()}>
+                        <input
+                          autoFocus
+                          value={editingNomeValue}
+                          onChange={e => setEditingNomeValue(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') saveNome(projeto.id)
+                            if (e.key === 'Escape') setEditingNomeId(null)
+                          }}
+                          onBlur={() => saveNome(projeto.id)}
+                          className="flex-1 min-w-0 text-sm font-semibold text-zinc-800 bg-zinc-50 border border-zinc-300 rounded-md px-2 py-0.5 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-300"
+                        />
+                        <button
+                          onMouseDown={e => { e.preventDefault(); saveNome(projeto.id) }}
+                          className="shrink-0 p-0.5 rounded text-emerald-500 hover:bg-emerald-50"
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onMouseDown={e => { e.preventDefault(); setEditingNomeId(null) }}
+                          className="shrink-0 p-0.5 rounded text-zinc-400 hover:bg-zinc-100"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <p className="text-sm font-semibold text-zinc-800 truncate flex-1">{projeto.nome}</p>
+                        <button
+                          onClick={e => startEditNome(projeto, e)}
+                          className="shrink-0 p-0.5 rounded text-zinc-300 hover:text-zinc-500 hover:bg-zinc-100 opacity-0 group-hover/nome:opacity-100 transition-opacity"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+
                   <p className="text-[10px] text-zinc-400 mt-0.5">{formatDate(projeto.atualizado_em)}</p>
 
                   {bancosEntries.length > 0 ? (
@@ -259,7 +321,7 @@ export function ClienteViewPage({ minhaInfo }: Props) {
                       Nenhum banco vinculado
                     </p>
                   )}
-                </button>
+                </div>
               )
             })}
           </div>

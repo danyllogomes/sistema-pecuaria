@@ -52,5 +52,8 @@ export const createProjeto = (clienteId: string, nome: string, dados: WizardForm
 export const updateProjetoDados = (id: string, dados: WizardFormData) =>
   request<void>(`projetos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ dados }) })
 
+export const updateProjetoNome = (id: string, nome: string) =>
+  request<void>(`projetos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ nome }) })
+
 export const updateProjetoBancos = (id: string, bancos_status: Record<string, BancoProgress>) =>
   request<void>(`projetos?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ bancos_status }) })
