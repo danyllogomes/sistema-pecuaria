@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proposta de Custeio Pecuário — BNB</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="logo">BNB</div>
+  <div class="subtitle">Proposta de Custeio Pecuário</div>
+</header>
+
+<!-- Progress bar -->
+<div class="progress-bar-outer">
+  <div class="steps-track">
+    {% set step_labels = [
+      'Dados do Cliente','Elaborador','Proposta','Animais',
+      'Itens Financ.','Desembolso','Receitas','Revisão'
+    ] %}
+    {% for label in step_labels %}
+    <div class="step-pill" onclick="goToStep({{ loop.index }})">
+      <div class="dot">{{ loop.index }}</div>
+      <div class="label">{{ label }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="main-content">
+
+  <!-- ══ STEP 1 ══════════════════════════════════════════════════════════════ -->
+  <div class="wizard-step active" id="step-1">
+    <div class="card">
+      <div class="card-header">
+        <div class="icon">👤</div>
+        <h3>Dados do Cliente</h3>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group col-8">
+            <label for="nome_cliente">Nome / Razão Social <span class="required">*</span></label>
+            <input type="text" id="nome_cliente" data-required placeholder="Nome completo ou razão social">
+            <span class="error-msg" id="nome_cliente_err"></span>
+          </div>
+          <div class="form-group col-4">
+            <label for="cpf_cnpj_cliente">CPF / CNPJ <span class="required">*</span></label>
+            <input type="text" id="cpf_cnpj_cliente" data-required placeholder="000.000.000-00">
+            <span class="error-msg" id="cpf_cnpj_cliente_err"></span>
+          </div>
+          <div class="form-group col-4">
+            <label for="telefone_cliente">Telefone</label>
+            <input type="text" id="telefone_cliente" placeholder="(00) 00000-0000">
+          </div>
+          <div class="form-group col-8">
+            <label for="municipio_uf">Município-UF <span class="required">*</span> <span class="hint">ex: FORTALEZA CENTRO-CE</span></label>
+            <input type="text" id="municipio_uf" data-required list="list_municipios" placeholder="Comece a digitar o município…">
+            <datalist id="list_municipios">
+              {% for m in ref.municipios[:3000] %}
+              <option value="{{ m }}">
+              {% endfor %}
+            </datalist>
+            <span class="error-msg" id="municipio_uf_err"></span>
+          </div>
+          <div class="form-group col-8">
+            <label for="endereco">Endereço</label>
+            <input type="text" id="endereco" placeholder="Rua / Avenida / Sítio">
+          </div>
+          <div class="form-group col-2">
+            <label for="numero">Número</label>
+            <input type="text" id="numero" placeholder="S/N">
+          </div>
+          <div class="form-group col-2">
+            <label for="bairro">Bairro</label>
+            <input type="text" id="bairro">
+          </div>
+          <div class="form-group col-4">
+            <label for="complemento">Complemento</label>
+            <input type="text" id="complemento" placeholder="Apto, sala, etc.">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 2 ══════════════════════════════════════════════════════════════ -->
+  <div class="wizard-step" id="step-2">
+    <div class="card">
+      <div class="card-header">
+        <div class="icon">🏢</div>
+        <h3>Dados do Elaborador</h3>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group col-6">
+            <label>Cliente também é Elaborador?</label>
+            <div class="radio-group">
+              {% for v in ['Sim','Não'] %}
+              <input type="radio" name="cliente_elaborador" id="ce_{{ v }}" value="{{ v }}" class="radio-btn">
+              <label for="ce_{{ v }}" class="radio-label">{{ v }}</label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="form-group col-6">
+            <label for="data_elaboracao">Data da Elaboração</label>
+            <input type="text" id="data_elaboracao" placeholder="DD/MM/AAAA">
+          </div>
+          <div class="form-group col-8">
+            <label for="empresa_elaborador">Empresa / Elaborador <span class="required">*</span></label>
+            <input type="text" id="empresa_elaborador" data-required placeholder="Nome da empresa ou do elaborador">
+            <span class="error-msg" id="empresa_elaborador_err"></span>
+          </div>
+          <div class="form-group col-4">
+            <label for="cpf_cnpj_elaborador">CPF / CNPJ Elaborador</label>
+            <input type="text" id="cpf_cnpj_elaborador" placeholder="000.000.000-00">
+          </div>
+          <div class="form-group col-6">
+            <label for="tecnico_responsavel">Técnico Responsável <span class="required">*</span></label>
+            <input type="text" id="tecnico_responsavel" data-required placeholder="Nome completo">
+            <span class="error-msg" id="tecnico_responsavel_err"></span>
+          </div>
+          <div class="form-group col-3">
+            <label for="cpf_tecnico">CPF do Técnico</label>
+            <input type="text" id="cpf_tecnico" placeholder="000.000.000-00">
+          </div>
+          <div class="form-group col-3">
+            <label for="crea">CREA / CRBio / CFT</label>
+            <input type="text" id="crea" placeholder="00000-D/UF">
+          </div>
+          <div class="form-group col-4">
+            <label for="telefone_elaborador">Telefone do Elaborador</label>
+            <input type="text" id="telefone_elaborador" placeholder="(00) 00000-0000">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 3 ══════════════════════════════════════════════════════════════ -->
+  <div class="wizard-step" id="step-3">
+    <div class="card">
+      <div class="card-header">
+        <div class="icon">📋</div>
+        <h3>Configuração da Proposta</h3>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+
+          <div class="section-divider col-12"><span>Agência e Grupo</span></div>
+
+          <div class="form-group col-6">
+            <label for="agencia">Agência BNB <span class="required">*</span></label>
+            <input type="text" id="agencia" data-required list="list_agencias" placeholder="Comece a digitar…">
+            <datalist id="list_agencias">
+              {% for a in ref.agencies %}
+              <option value="{{ a.name }}">
+              {% endfor %}
+            </datalist>
+            <span class="error-msg" id="agencia_err"></span>
+          </div>
+          <div class="form-group col-3">
+            <label for="categ_produtor">Categoria do Produtor</label>
+            <select id="categ_produtor">
+              <option value="">— Selecione —</option>
+              {% for c in ref.categorias %}
+              <option>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group col-3">
+            <label for="grupo">Grupo</label>
+            <select id="grupo">
+              <option value="">— Selecione —</option>
+              {% for g in ref.grupos %}
+              <option>{{ g }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="section-divider col-12"><span>Programa e Finalidade</span></div>
+
+          <div class="form-group col-8">
+            <label for="programa_credito">Programa de Crédito <span class="required">*</span></label>
+            <input type="text" id="programa_credito" data-required list="list_programas" placeholder="Comece a digitar…">
+            <datalist id="list_programas">
+              {% for p in ref.programs %}
+              <option value="{{ p.name }}">
+              {% endfor %}
+            </datalist>
+            <span class="error-msg" id="programa_credito_err"></span>
+          </div>
+          <div class="form-group col-4">
+            <label for="finalidade_credito">Finalidade do Crédito <span class="required">*</span></label>
+            <select id="finalidade_credito" data-required>
+              <option value="">— Selecione —</option>
+              {% for f in ref.finalidades %}
+              <option value="{{ f.name }}">{{ f.name }}</option>
+              {% endfor %}
+            </select>
+            <span class="error-msg" id="finalidade_credito_err"></span>
+          </div>
+
+          <div class="form-group col-8">
+            <label for="atividade_principal">Atividade Principal <span class="required">*</span></label>
+            <input type="text" id="atividade_principal" data-required list="list_atividades" placeholder="Comece a digitar…">
+            <datalist id="list_atividades">
+              {% for a in ref.atividades %}
+              <option value="{{ a.name }}">
+              {% endfor %}
+            </datalist>
+            <span class="error-msg" id="atividade_principal_err"></span>
+          </div>
+          <div class="form-group col-4">
+            <label for="benef_politica_pub">Beneficiário de Políticas Públicas</label>
+            <select id="benef_politica_pub">
+              <option value="">— Selecione —</option>
+              {% for b in ref.beneficiarios %}
+              <option value="{{ b.name }}">{{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="section-divider col-12"><span>Perguntas Obrigatórias</span></div>
+
+          <div class="form-group col-6">
+            <label>Município em Decreto de Emergência?</label>
+            <div class="radio-group">
+              {% for v in ['Não','Sim'] %}
+              <input type="radio" name="municipio_decreto" id="md_{{ v }}" value="{{ v }}" class="radio-btn">
+              <label for="md_{{ v }}" class="radio-label">{{ v }}</label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="form-group col-6">
+            <label>Produção de Base Agroecológica/Orgânica?</label>
+            <div class="radio-group">
+              {% for v in ['Não','Sim'] %}
+              <input type="radio" name="base_agroecologica" id="ba_{{ v }}" value="{{ v }}" class="radio-btn">
+              <label for="ba_{{ v }}" class="radio-label">{{ v }}</label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="form-group col-6">
+            <label>Origem nos Planos de Ação Territorial?</label>
+            <div class="radio-group">
+              {% for v in ['Não','Sim'] %}
+              <input type="radio" name="planos_territoriais" id="pt_{{ v }}" value="{{ v }}" class="radio-btn">
+              <label for="pt_{{ v }}" class="radio-label">{{ v }}</label>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="form-group col-6">
+            <label>Custeio Rotativo?</label>
+            <div class="radio-group">
+              {% for v in ['Não','Sim'] %}
+              <input type="radio" name="custeio_rotativo" id="cr_{{ v }}" value="{{ v }}" class="radio-btn">
+              <label for="cr_{{ v }}" class="radio-label">{{ v }}</label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="form-group col-6">
+            <label for="valor_emergencial">Valor já contratado no Programa Emergencial (R$)</label>
+            <input type="number" id="valor_emergencial" min="0" step="0.01" placeholder="0,00">
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 4 ══════════════════════════════════════════════════════════════ -->
+  <div class="wizard-step" id="step-4">
+    <div class="card">
+      <div class="card-header">
+        <div class="icon">🐄</div>
+        <h3>Atividades / Animais</h3>
+      </div>
+      <div class="card-body">
+        <div class="form-grid">
+
+          <div class="section-divider col-12"><span>Bovinocultura</span></div>
+
+          {% set bov_cats = [
+            ('reprod_bovinos','Reprodutor(es)'),
+            ('matrizes_bovinos','Matrizes'),
+            ('novilhos','Novilhos(as)'),
+            ('novilhas_engorda','Novilhas (engorda)'),
+            ('garrotes','Garrotes'),
+            ('garrotas','Garrotas'),
+            ('bezerros','Bezerros(as)'),
+          ] %}
+          {% for fid, label in bov_cats %}
+          <div class="form-group col-3">
+            <label for="{{ fid }}">{{ label }}</label>
+            <input type="number" id="{{ fid }}" min="0" placeholder="0">
+          </div>
+          {% endfor %}
+
+          <div class="section-divider col-12"><span>Ovino / Caprinocultura</span></div>
+
+          {% set ovi_cats = [
+            ('reprod_ovinos','Reprodutor(es)'),
+            ('matrizes_ovinos','Matrizes'),
+            ('femeas_1_2_anos','Fêmeas 1–2 anos'),
+            ('machos_1_2_anos','Machos 1–2 anos'),
+            ('femeas_0_1_anos','Fêmeas 0–1 ano'),
+            ('machos_0_1_anos','Machos 0–1 ano'),
+          ] %}
+          {% for fid, label in ovi_cats %}
+          <div class="form-group col-3">
+            <label for="{{ fid }}">{{ label }}</label>
+            <input type="number" id="{{ fid }}" min="0" placeholder="0">
+          </div>
+          {% endfor %}
+
+          <div class="section-divider col-12"><span>Ração</span></div>
+
+          <div class="form-group col-4">
+            <label for="necessidade_racao_meses">Necessidade de Ração (meses)</label>
+            <input type="number" id="necessidade_racao_meses" min="0" max="12" placeholder="0">
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 5 ══════════════════════════════════════════════════════════════ -->
+  <div class="wizard-step" id="step-5">
+    <div class="card">
+      <div class="card-header">
+        <div class="icon">💰</div>
+        <h3>Itens Financiados</h3>
+        <span class="badge">Valores unitários</span>
+      </div>
+      <div class="card-body">
+        <div class="info-box">
+          💡 As quantidades dos itens pré-definidos são calculadas automaticamente pela planilha. Informe apenas o <strong>Valor Unitário (R$)</strong> e o <strong>Recurso Próprio Unitário (R$)</strong> de cada item.
+        </div>
+
+        <div class="section-divider" style="margin-bottom:12px"><span>Itens Pré-definidos</span></div>
+
+        <table class="items-table" style="margin-bottom:24px">
+          <thead>
+            <tr>
+              <th style="width:35%">Item</th>
+              <th class="right" style="width:25%">Vr. Unitário (R$)</th>
+              <th class="right" style="width:25%">Rec. Próprio Unit. (R$)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set pre_items = [
+              ('preco_milho','rec_prop_milho','Milho (saco 60 kg)'),
+              ('preco_torta','rec_prop_torta','Torta de algodão (saco 50 kg)'),
+              ('preco_soja','rec_prop_soja','Soja (saco 50 kg)'),
+              ('preco_vacinas','rec_prop_vacinas','Vacinas e Medicamentos (verba)'),
+              ('preco_racao_conc','rec_prop_racao_conc','Ração Concentrada'),
+              ('preco_sal_mineral','rec_prop_sal_mineral','Sal Mineral'),
+            ] %}
+            {% for pid, rid, label in pre_items %}
+            <tr class="pre-defined">
+              <td>{{ label }}</td>
+              <td><input type="number" id="{{ pid }}" min="0" step="0.01" placeholder="0,00" style="text-align:right;width:100%"></td>
+              <td><input type="number" id="{{ rid }}" min="0" step="0.01" placeholder="0,00" style="text-align:right;width:100%"></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="section-divider" style="margin-bottom:12px"><span>Itens Adicionais (até 5)</span></div>
+
+        <table class="items-table" style="margin-bottom:24px">
+          <thead>
+            <tr>
+              <th style="width:20%">Discriminação</th>
+              <th style="width:7%">Área (Ha)</th>
+              <th style="width:7%">Insumo?</th>
+              <th style="width:8%">Qtde</th>
+              <th style="width:10%">Unidade</th>
+              <th style="width:12%">Uso</th>
+              <th class="right" style="width:12%">Vr. Unit. (R$)</th>
+              <th class="right" style="width:12%">Rec. Pr. Unit.</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in range(1,6) %}
+            <tr class="free-item">
+              <td><input type="text" id="livre_discrim_{{ i }}" placeholder="Descrição do item"></td>
+              <td><input type="number" id="livre_area_{{ i }}" min="0" step="0.01" placeholder="—"></td>
+              <td>
+                <select id="livre_insumo_{{ i }}">
+                  <option value="">—</option>
+                  <option value="Sim">Sim</option>
+                  <option value="Não">Não</option>
+                </select>
+              </td>
+              <td><input type="number" id="livre_qtd_{{ i }}" min="0" step="0.01" placeholder="0"></td>
+              <td>
+                <input type="text" id="livre_unid_{{ i }}" list="list_unidades" placeholder="unid">
+                <datalist id="list_unidades">
+                  {% for u in ref.unidades %}
+                  <option value="{{ u.sigla }}">{{ u.desc }}</option>
+                  {% endfor %}
+                </datalist>
+              </td>
+              <td>
+                <select id="livre_uso_{{ i }}">
+                  <option value="">—</option>
+                  {% for u in ref.usos %}
+                  <option>{{ u.name }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td><input type="number" id="livre_preco_{{ i }}" min="0" step="0.01" placeholder="0,00"></td>
+              <td><input type="number" id="livre_rec_{{ i }}" min="0" step="0.01" placeholder="0,00"></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="section-divider" style="margin-bottom:12px"><span>Mão de Obra e Assessoria</span></div>
+
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th style="width:35%">Item</th>
+              <th class="right" style="width:25%">Vr. Unitário (R$)</th>
+              <th class="right" style="width:25%">Rec. Próprio Unit. (R$)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Mão de Obra <span class="tag tag-green" style="font-size:10px">calculado</span></td>
+              <td><input type="number" id="preco_mao_obra" min="0" step="0.01" placeholder="0,00" style="text-align:right;width:100%"></td>
+              <td><input type="number" id="rec_prop_mao_obra" min="0" step="0.01" placeholder="0,00" style="text-align:right;width:100%"></td>
+            </tr>
+            <tr>
+              <td>Custo de Assessoria Empresarial e Técnica</td>
+              <td><input type="number" id="assessoria_pct" min="0" max="100" step="0.01" placeholder="%" style="text-align:right;width:100%"> <span style="font-size:11px;color:#9ca3af">% do total</span></td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 6 ══════════════════════════════════════════════════════════════ -->
+  <div class="wizard-step" id="step-6">
+    <div class="card">
+      <div class="card-header">
+        <div class="icon">📅</div>
+        <h3>Cronograma de Desembolsos</h3>
+      </div>
+      <div class="card-body">
+        <div class="info-box">
+          📌 Informe as datas das parcelas (formato <strong>MM/AAAA</strong>) e distribua os percentuais de cada item por parcela. A soma deve totalizar 100% por item.
+        </div>
+
+        {% set cron_items = [
+          ('milho','Milho (saco 60 kg)'),
+          ('torta','Torta de algodão'),
+          ('soja','Soja (saco 50 kg)'),
+          ('vacinas','Vacinas e Medicamentos'),
+          ('racao_conc','Ração Concentrada'),
+          ('sal_mineral','Sal Mineral'),
+          ('livre_1','Item adicional 1'),
+          ('livre_2','Item adicional 2'),
+          ('livre_3','Item adicional 3'),
+          ('livre_4','Item adicional 4'),
+          ('livre_5','Item adicional 5'),
+          ('mao_obra','Mão de Obra'),
+          ('assessoria','Assessoria'),
+        ] %}
+
+        <table class="cronograma-table">
+          <thead>
+            <tr>
+              <th class="item-col" style="width:30%">Item</th>
+              <th>Parcela 1</th>
+              <th>Parcela 2</th>
+              <th>Parcela 3</th>
+              <th>Parcela 4</th>
+            </tr>
+            <tr class="date-row">
+              <td style="padding:6px 8px;font-size:12px;color:#4b5563">Data (MM/AAAA)</td>
+              {% for p,label in [('1','Parcela 1'),('2','Parcela 2'),('3','Parcela 3'),('4','Parcela 4')] %}
+              <td style="padding:4px 8px;text-align:center">
+                <input type="text" id="data_parcela_{{ p }}" placeholder="MM/AAAA" maxlength="7" style="width:90px">
+              </td>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, label in cron_items %}
+            <tr>
+              <td class="item-name">{{ label }}</td>
+              {% for p in ['p1','p2','p3','p4'] %}
+              <td style="text-align:center">
+                <input type="number" id="cron_{{ key }}_{{ p }}" min="0" max="100" step="0.01" placeholder="0">
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+            <tr style="background:#f9fafb;font-weight:600">
+              <td style="font-size:12px;color:#4b5563">TOTAL (%)</td>
+              {% for p in ['p1','p2','p3','p4'] %}
+              <td style="text-align:center">
+                <span id="cron_total_{{ p }}" class="pct-total">—</span>
+              </td>
+              {% endfor %}
+            </tr>
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 7 ══════════════════════════════════════════════════════════════ -->
+  <div class="wizard-step" id="step-7">
+    <div class="card">
+      <div class="card-header">
+        <div class="icon">📈</div>
+        <h3>Receitas e Contrato</h3>
+      </div>
+      <div class="card-body">
+
+        <div class="section-divider" style="margin-bottom:12px"><span>Receitas Projetadas (R$)</span></div>
+        <div class="info-box">Informe a receita bruta estimada por atividade para cada ano.</div>
+
+        <table class="receitas-table" style="margin-bottom:24px">
+          <thead>
+            <tr>
+              <th class="left" style="width:25%">Atividade</th>
+              <th>Ano 1</th><th>Ano 2</th><th>Ano 3</th><th>Ano 4</th><th>Ano 5</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Bovinocultura</td>
+              {% for n in range(1,6) %}<td><input type="number" id="rec_bov_{{ n }}" min="0" step="0.01" placeholder="0,00"></td>{% endfor %}
+            </tr>
+            <tr>
+              <td>Ovino/Caprinocultura</td>
+              {% for n in range(1,6) %}<td><input type="number" id="rec_ovi_{{ n }}" min="0" step="0.01" placeholder="0,00"></td>{% endfor %}
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="section-divider" style="margin-bottom:12px"><span>Informações para o Contrato</span></div>
+
+        <div class="form-grid">
+          <div class="form-group col-3">
+            <label for="prazo_meses">Prazo (meses)</label>
+            <input type="number" id="prazo_meses" min="1" max="360" placeholder="ex: 12">
+          </div>
+          <div class="form-group col-3">
+            <label for="carencia_meses">Carência (meses)</label>
+            <input type="number" id="carencia_meses" min="0" max="360" placeholder="ex: 6">
+          </div>
+          <div class="form-group col-3">
+            <label for="encargos_ao_ano">Encargos (% a.a.)</label>
+            <input type="number" id="encargos_ao_ano" min="0" max="100" step="0.01" placeholder="ex: 7.65">
+          </div>
+          <div class="form-group col-3">
+            <label for="periodicidade_reembolso">Periodicidade Reembolso</label>
+            <select id="periodicidade_reembolso">
+              <option value="">— Selecione —</option>
+              {% for p in ref.periodicidades %}
+              <option>{{ p }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <div class="section-divider" style="margin-bottom:12px;margin-top:16px"><span>Informações de Lactação (opcional)</span></div>
+        <div class="form-grid">
+          <div class="form-group col-4">
+            <label for="periodo_lactacao">Período de Lactação (dias)</label>
+            <input type="number" id="periodo_lactacao" min="0" placeholder="ex: 180">
+          </div>
+          <div class="form-group col-4">
+            <label for="producao_leite">Produção de Leite – Cab./dia</label>
+            <input type="number" id="producao_leite" min="0" step="0.01" placeholder="ex: 5.0">
+          </div>
+        </div>
+
+        <div class="section-divider" style="margin-bottom:12px;margin-top:16px"><span>Comentários / Objetivos / Justificativas</span></div>
+        <div class="form-group">
+          <textarea id="comentarios" rows="5" placeholder="Descreva os objetivos do crédito, histórico da propriedade, justificativas relevantes…"></textarea>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ STEP 8 ══════════════════════════════════════════════════════════════ -->
+  <div class="wizard-step" id="step-8">
+    <div class="card">
+      <div class="card-header">
+        <div class="icon">✅</div>
+        <h3>Revisão da Proposta</h3>
+      </div>
+      <div class="card-body">
+        <div class="info-box">
+          Verifique os dados abaixo antes de gerar a planilha. Clique em um passo no topo para corrigir qualquer informação.
+        </div>
+        <div id="review-content">
+          <p style="color:#9ca3af;font-size:13px">Carregando resumo…</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="icon">📥</div>
+        <h3>Gerar Planilha</h3>
+      </div>
+      <div class="card-body" style="text-align:center;padding:32px">
+        <p style="margin-bottom:16px;color:#4b5563;font-size:14px">
+          A planilha gerada será idêntica à original (.xlsm) com todos os dados preenchidos.
+          As fórmulas e macros do BNB serão preservadas.
+        </p>
+        <button class="btn btn-success" id="btn-generate-card" onclick="generateFile()">
+          ⬇ Baixar Planilha .xlsm
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main-content -->
+
+<!-- Navigation bar -->
+<div class="nav-bar">
+  <span id="step-indicator" class="step-indicator">Passo 1 de 8</span>
+  <div class="btn-group">
+    <button class="btn btn-secondary" id="btn-prev" onclick="prevStep()" disabled>← Anterior</button>
+    <button class="btn btn-primary" id="btn-next" onclick="nextStep()">Próximo →</button>
+    <button class="btn btn-success" id="btn-generate" onclick="generateFile()" style="display:none">
+      ⬇ Baixar Planilha .xlsm
+    </button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- Inject programs for JS auto-fill -->
+<script>
+window.PROGRAMS = {{ ref.programs | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
