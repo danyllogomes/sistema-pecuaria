@@ -2,9 +2,11 @@ import io
 import json
 import os
 import openpyxl
-from flask import Flask, render_template, request, send_file, jsonify
+from flask import Flask, request, send_file, jsonify, send_from_directory
 
-app = Flask(__name__)
+DIST_DIR = os.path.join(os.path.dirname(__file__), 'static', 'dist')
+
+app = Flask(__name__, static_folder=None)
 TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), 'Planilha_Custeio_Pecuario.xlsm')
 
 # ── Reference data loaded once at startup (with JSON cache) ────────────────────
@@ -131,9 +133,13 @@ print(f"  {len(REF['agencies'])} agências | {len(REF['programs'])} programas | 
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
 
-@app.route('/')
-def index():
-    return render_template('index.html', ref=REF)
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react(path):
+    full = os.path.join(DIST_DIR, path)
+    if path and os.path.exists(full):
+        return send_from_directory(DIST_DIR, path)
+    return send_from_directory(DIST_DIR, 'index.html')
 
 
 @app.route('/api/reference')

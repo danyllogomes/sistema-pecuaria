@@ -449,3 +449,226 @@ input[readonly] {
   color: #92400e;
   margin-bottom: 14px;
 }
+
+/* ── App layout ──────────────────────────────────────────────────────────── */
+.app-layout {
+  display: flex;
+  height: calc(100vh - 56px);
+  overflow: hidden;
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  background: #fff;
+  border-right: 1px solid var(--gray-200);
+  overflow-y: auto;
+  padding: 12px 8px;
+}
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-600);
+  text-decoration: none;
+  transition: background .15s, color .15s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font);
+}
+.sidebar-item:hover { background: var(--gray-100); color: var(--gray-800); }
+.sidebar-item.active { background: var(--green-lt); color: var(--green); font-weight: 600; }
+.sidebar-icon { font-size: 17px; }
+
+/* ── Main area ────────────────────────────────────────────────────────────── */
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--gray-100);
+}
+
+/* ── Views ───────────────────────────────────────────────────────────────── */
+.view { display: none; padding: 28px 24px; }
+.view.active { display: block; }
+.view-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.view-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+/* ── Client table ────────────────────────────────────────────────────────── */
+.client-table { width: 100%; border-collapse: collapse; }
+.client-table thead th {
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--gray-600);
+  border-bottom: 1.5px solid var(--gray-200);
+  background: var(--gray-50);
+}
+.client-table tbody td {
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: 14px;
+  color: var(--gray-800);
+  vertical-align: middle;
+}
+.client-table tbody tr:last-child td { border-bottom: none; }
+.client-table tbody tr:hover { background: var(--gray-50); }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── Empty / loading state ────────────────────────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--gray-600);
+}
+
+/* ── Modal base ──────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  background: rgba(0,0,0,.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 620px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.modal-box-sm { max-width: 400px; }
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.modal-header h2 { font-size: 16px; font-weight: 700; color: var(--gray-800); }
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--gray-400);
+  line-height: 1;
+  padding: 0 2px;
+  font-family: var(--font);
+}
+.modal-close:hover { color: var(--gray-800); }
+.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── BNB Wizard Modal ────────────────────────────────────────────────────── */
+.modal-bnb-overlay { padding: 12px; }
+.modal-bnb-box {
+  background: var(--gray-100);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 1000px;
+  height: 96vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.modal-bnb-header {
+  padding: 13px 20px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  flex-shrink: 0;
+}
+.modal-bnb-body {
+  flex: 1;
+  overflow-y: auto;
+}
+.modal-bnb-body .main-content {
+  padding-bottom: 20px;
+  max-width: 100%;
+}
+.modal-bnb-footer {
+  padding: 12px 24px;
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 -2px 12px rgba(0,0,0,.08);
+}
+
+/* ── Extra button variants ───────────────────────────────────────────────── */
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-bnb { background: var(--green); color: #fff; }
+.btn-bnb:hover { background: var(--green-dk); }
+.btn-icon { padding: 6px 11px; font-size: 12px; }
+
+/* ── Nav bar override (kept for legacy) ──────────────────────────────────── */
+.nav-bar { display: none; }
+
+/* ── Project list (modal-projetos) ──────────────────────────────────────── */
+.projeto-item {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--gray-100);
+  cursor: pointer;
+  transition: background .12s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.projeto-item:last-child { border-bottom: none; }
+.projeto-item:hover { background: var(--gray-50); }
+.projeto-item-left { flex: 1; min-width: 0; }
+.projeto-nome { font-weight: 600; font-size: 14px; color: var(--gray-800); }
+.projeto-meta { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+.projeto-arrow { color: var(--gray-300); font-size: 18px; flex-shrink: 0; }

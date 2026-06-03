@@ -6,3 +6,5 @@ __pycache__/
 venv/
 *.log
 .DS_Store
+node_modules/
+frontend/node_modules/
