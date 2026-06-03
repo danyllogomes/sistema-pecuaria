@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Calculator } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Calculator, CheckCircle } from 'lucide-react'
 
 const LINHAS = [
   { id: 'pronaf_b',  label: 'PRONAF B / Agroamigo',      taxa: 0.005,  carencia: 12, prazo_max: 36 },
@@ -22,7 +23,12 @@ function fmt(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
-export function SimulacaoTaxas() {
+interface Props {
+  concluida: boolean
+  onToggle: (v: boolean) => void
+}
+
+export function SimulacaoTaxas({ concluida, onToggle }: Props) {
   const [valor, setValor] = useState('50000')
   const [prazo, setPrazo] = useState('24')
 
@@ -43,7 +49,6 @@ export function SimulacaoTaxas() {
         <span>Simulação estimada com base nas taxas nominais vigentes. Consulte o BNB para condições exatas e atualizadas.</span>
       </div>
 
-      {/* Inputs */}
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <Label>Valor financiado (R$)</Label>
@@ -65,7 +70,6 @@ export function SimulacaoTaxas() {
         </div>
       </div>
 
-      {/* Results table */}
       {pv > 0 && n > 0 && (
         <div className="overflow-x-auto rounded-lg border border-zinc-100">
           <table className="w-full text-sm">
@@ -106,10 +110,26 @@ export function SimulacaoTaxas() {
       )}
 
       {(!pv || !n) && (
-        <div className="flex items-center justify-center py-10 text-sm text-zinc-300">
+        <div className="flex items-center justify-center py-6 text-sm text-zinc-300">
           Preencha o valor e prazo para simular
         </div>
       )}
+
+      <div className={`flex items-center justify-between rounded-xl border px-4 py-3 ${concluida ? 'bg-emerald-50 border-emerald-200' : 'bg-zinc-50 border-zinc-200'}`}>
+        <div className="flex items-center gap-2">
+          <CheckCircle className={`h-4 w-4 ${concluida ? 'text-emerald-500' : 'text-zinc-300'}`} />
+          <span className={`text-sm font-medium ${concluida ? 'text-emerald-700' : 'text-zinc-500'}`}>
+            {concluida ? 'Simulação marcada como concluída' : 'Marcar simulação como concluída'}
+          </span>
+        </div>
+        <Button
+          size="sm"
+          variant={concluida ? 'outline' : 'default'}
+          onClick={() => onToggle(!concluida)}
+        >
+          {concluida ? 'Desfazer' : 'Marcar concluída'}
+        </Button>
+      </div>
     </div>
   )
 }

@@ -12,11 +12,22 @@ export interface Cliente {
   atualizado_em: string
 }
 
+export type BancoId = 'BNB' | 'Bradesco' | 'Caixa' | 'BB' | 'Sicredi'
+
+export interface BancoProgress {
+  pre_projeto_completo: boolean
+  simulacao_completa: boolean
+  proposta_enviada: boolean
+  checklist: Record<string, boolean>
+  adicionado_em: string
+}
+
 export interface Projeto {
   id: string
   cliente_id: string
   nome: string
   dados: WizardFormData | null
+  bancos_status: Record<string, BancoProgress>
   criado_em: string
   atualizado_em: string
 }
