@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Pencil, Trash2, Eye, Search, X, ArrowUpDown, FolderOpen } from 'lucide-react'
+import { Plus, Pencil, Trash2, Eye, Search, X, ArrowUpDown, FolderOpen, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -44,6 +44,8 @@ export function ClientesPage({ minhaInfo }: Props) {
   const [filterUF, setFilterUF] = useState('')
   const [filterProjetos, setFilterProjetos] = useState<ProjetoFilter>('todos')
   const [sortBy, setSortBy] = useState<SortKey>('nome_asc')
+  const [page, setPage] = useState(1)
+  const PAGE_SIZE = 15
 
   const { ref } = useReference()
 
@@ -109,6 +111,10 @@ export function ClientesPage({ minhaInfo }: Props) {
     return result
   }, [clientes, search, filterUF, filterProjetos, sortBy, projectCounts])
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
   const hasFilters = search || filterUF || filterProjetos !== 'todos' || sortBy !== 'nome_asc'
 
   const clearFilters = () => {
@@ -116,13 +122,17 @@ export function ClientesPage({ minhaInfo }: Props) {
     setFilterUF('')
     setFilterProjetos('todos')
     setSortBy('nome_asc')
+    setPage(1)
   }
+
+  // Reset to page 1 whenever filters change
+  useEffect(() => { setPage(1) }, [search, filterUF, filterProjetos, sortBy])
 
   const openNew = () => { setEditCliente(null); setModalOpen(true) }
   const openEdit = (c: Cliente) => { setEditCliente(c); setModalOpen(true) }
 
   return (
-    <div className="p-8 h-full flex flex-col gap-5">
+    <div className="p-8 flex flex-col gap-5">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -229,7 +239,7 @@ export function ClientesPage({ minhaInfo }: Props) {
 
       {/* Table */}
       {!loading && filtered.length > 0 && (
-        <div className="bg-white rounded-xl border border-zinc-100 shadow-sm overflow-hidden flex-1">
+        <div className="bg-white rounded-xl border border-zinc-100 shadow-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-zinc-100">
@@ -239,7 +249,7 @@ export function ClientesPage({ minhaInfo }: Props) {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(c => {
+              {paginated.map(c => {
                 const count = projectCounts[c.id] ?? 0
                 return (
                   <tr key={c.id} className="border-b border-zinc-50 last:border-0 hover:bg-zinc-50/50 transition-colors">
@@ -279,6 +289,46 @@ export function ClientesPage({ minhaInfo }: Props) {
               })}
             </tbody>
           </table>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-5 py-3 border-t border-zinc-100">
+              <p className="text-xs text-zinc-400 tabular-nums">
+                {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filtered.length)} de {filtered.length}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost" size="sm"
+                  className="h-7 w-7 p-0"
+                  disabled={safePage === 1}
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+                  <button
+                    key={n}
+                    onClick={() => setPage(n)}
+                    className={`h-7 w-7 rounded-lg text-xs font-medium transition-colors ${
+                      n === safePage
+                        ? 'bg-zinc-900 text-white'
+                        : 'text-zinc-500 hover:bg-zinc-100'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <Button
+                  variant="ghost" size="sm"
+                  className="h-7 w-7 p-0"
+                  disabled={safePage === totalPages}
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
