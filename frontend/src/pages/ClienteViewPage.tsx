@@ -27,7 +27,7 @@ const STAGES: {
 }[] = [
   { id: 'pre',   num: 1, label: 'Pré-Projeto',       key: 'pre_projeto_completo' },
   { id: 'sim',   num: 2, label: 'Simulação de Taxas', key: 'simulacao_completa' },
-  { id: 'envio', num: 3, label: 'Envio dos Projetos', key: 'proposta_enviada' },
+  { id: 'envio', num: 3, label: 'Planilha', key: 'proposta_enviada' },
 ]
 
 const BANK_CONFIG: Record<string, { name: string; color: string; initial: string; available: boolean }> = {
