@@ -18,6 +18,7 @@ export interface BancoProgress {
   pre_projeto_completo: boolean
   simulacao_completa: boolean
   proposta_enviada: boolean
+  spc_gerado?: boolean
   checklist: Record<string, boolean>
   adicionado_em: string
 }

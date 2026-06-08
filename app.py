@@ -2,7 +2,9 @@ import io
 import json
 import os
 import openpyxl
+from datetime import date
 from flask import Flask, request, send_file, jsonify, send_from_directory
+from spc_writer import build_spc
 
 DIST_DIR = os.path.join(os.path.dirname(__file__), 'static', 'dist')
 
@@ -312,6 +314,65 @@ def gerar():
         mimetype='application/vnd.ms-excel.sheet.macroEnabled.12',
         as_attachment=True,
         download_name=filename,
+    )
+
+
+@app.route('/api/gerar-spc', methods=['POST'])
+def gerar_spc():
+    data = request.get_json(force=True)
+
+    nome_cli = data.get('nome_cliente', '')
+    cpf_cli  = data.get('cpf_cnpj_cliente', '00000000000')
+    nm_bnf   = data.get('nome_cliente', nome_cli)
+
+    # Parse data_inicio
+    dt_str  = data.get('data_inicio')
+    dt_ini  = None
+    if dt_str:
+        try:
+            parts = [int(x) for x in dt_str.split('-')]
+            dt_ini = date(parts[0], parts[1], parts[2])
+        except Exception:
+            pass
+
+    # Build items from free_items wizard data
+    raw_items = data.get('items', [])
+    items = []
+    for idx, it in enumerate(raw_items, start=1):
+        try:
+            vr_uni = float(str(it.get('preco', 0)).replace(',', '.'))
+            qt     = float(str(it.get('quantidade', 1)).replace(',', '.'))
+            rec    = float(str(it.get('rec_prop', 0)).replace(',', '.'))
+            items.append({
+                'sq_ivs':      idx,
+                'sq_orc':      1,
+                'de_orc':      str(it.get('discriminacao', ''))[:70],
+                'qt_orc':      qt,
+                'cd_und_mdd':  str(it.get('unidade', 'und'))[:5],
+                'vr_uni':      vr_uni,
+                'rec_prp_aju': rec,
+                'cd_sbg_orc':  12,
+            })
+        except Exception:
+            continue
+
+    try:
+        spc_bytes = build_spc(
+            nome_cli=nome_cli,
+            cpf_cli=cpf_cli,
+            nm_bnf=nm_bnf,
+            items=items,
+            dt_ini=dt_ini,
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    nome_safe = nome_cli.replace(' ', '_')[:30]
+    return send_file(
+        io.BytesIO(spc_bytes),
+        mimetype='application/zip',
+        as_attachment=True,
+        download_name=f'Proposta_{nome_safe}.SPC',
     )
 
 

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { PreProjetos } from '@/components/bancos/PreProjetos'
 import { SimulacaoTaxas } from '@/components/bancos/SimulacaoTaxas'
 import { EnvioProjetos } from '@/components/bancos/EnvioProjetos'
+import { ExportarSPC } from '@/components/bancos/ExportarSPC'
 import { WizardModal } from '@/components/wizard/WizardModal'
 import { useWizardStore } from '@/store/wizardStore'
 import { useReference } from '@/hooks/useReference'
@@ -17,17 +18,18 @@ import { formatDate } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 import type { Cliente, MinhaInfo, Projeto, BancoProgress } from '@/types'
 
-type StageId = 'pre' | 'sim' | 'envio'
+type StageId = 'pre' | 'sim' | 'envio' | 'spc'
 
 const STAGES: {
   id: StageId
   num: number
   label: string
-  key: 'pre_projeto_completo' | 'simulacao_completa' | 'proposta_enviada'
+  key: 'pre_projeto_completo' | 'simulacao_completa' | 'proposta_enviada' | 'spc_gerado'
 }[] = [
-  { id: 'pre',   num: 1, label: 'Pré-Projeto',       key: 'pre_projeto_completo' },
-  { id: 'sim',   num: 2, label: 'Simulação de Taxas', key: 'simulacao_completa' },
-  { id: 'envio', num: 3, label: 'Planilha', key: 'proposta_enviada' },
+  { id: 'pre',   num: 1, label: 'Pré-Projeto',        key: 'pre_projeto_completo' },
+  { id: 'sim',   num: 2, label: 'Simulação de Taxas',  key: 'simulacao_completa' },
+  { id: 'envio', num: 3, label: 'Planilha',            key: 'proposta_enviada' },
+  { id: 'spc',   num: 4, label: 'Exportar SPC',        key: 'spc_gerado' },
 ]
 
 const BANK_CONFIG: Record<string, { name: string; color: string; initial: string; available: boolean }> = {
@@ -41,7 +43,7 @@ const BANK_CONFIG: Record<string, { name: string; color: string; initial: string
 const ALL_BANKS = ['BNB', 'Bradesco', 'Caixa', 'BB', 'Sicredi']
 
 function calcProgresso(s: BancoProgress): number {
-  const flags = [s.pre_projeto_completo, s.simulacao_completa, s.proposta_enviada]
+  const flags = [s.pre_projeto_completo, s.simulacao_completa, s.proposta_enviada, s.spc_gerado ?? false]
   return Math.round((flags.filter(Boolean).length / flags.length) * 100)
 }
 
@@ -512,6 +514,14 @@ export function ClienteViewPage({ minhaInfo }: Props) {
                         minhaInfo={minhaInfo}
                         enviada={activeBancoStatus.proposta_enviada}
                         onToggleEnviada={v => handleBancoUpdate({ proposta_enviada: v })}
+                      />
+                    )}
+                    {activeStage === 'spc' && (
+                      <ExportarSPC
+                        projeto={selectedProjeto}
+                        cliente={cliente}
+                        gerado={activeBancoStatus.spc_gerado ?? false}
+                        onToggleGerado={v => handleBancoUpdate({ spc_gerado: v })}
                       />
                     )}
                   </div>
