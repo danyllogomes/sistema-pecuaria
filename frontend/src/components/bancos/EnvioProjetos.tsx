@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download, Edit, FileCheck, FileX, CheckCircle, Send } from 'lucide-react'
+import { Download, Edit, FileCheck, FileX } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useWizardStore } from '@/store/wizardStore'
 import { getProjeto } from '@/lib/supabase'
@@ -50,6 +50,7 @@ export function EnvioProjetos({ projeto, cliente, minhaInfo, enviada, onToggleEn
       a.remove()
       URL.revokeObjectURL(url)
       toast('Planilha gerada com sucesso!')
+      if (!enviada) onToggleEnviada(true)
     } catch (err: unknown) {
       toast((err as Error).message, 'destructive')
     } finally {
@@ -59,7 +60,6 @@ export function EnvioProjetos({ projeto, cliente, minhaInfo, enviada, onToggleEn
 
   return (
     <div className="space-y-5">
-      {/* Proposal status */}
       <div className={`rounded-xl border p-4 ${projeto.dados ? 'bg-emerald-50 border-emerald-200' : 'bg-zinc-50 border-zinc-200'}`}>
         <div className="flex items-start gap-3">
           {projeto.dados
@@ -94,47 +94,6 @@ export function EnvioProjetos({ projeto, cliente, minhaInfo, enviada, onToggleEn
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* Proposal summary (if dados exist) */}
-      {projeto.dados && (
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: 'Categoria', value: projeto.dados.categ_produtor },
-            { label: 'Programa', value: projeto.dados.programa_credito?.split(' ').slice(0, 3).join(' ') },
-            { label: 'Finalidade', value: projeto.dados.finalidade_credito },
-            { label: 'Atividade Principal', value: projeto.dados.atividade_principal?.split(' ').slice(0, 3).join(' ') },
-            { label: 'Prazo', value: projeto.dados.prazo_meses ? `${projeto.dados.prazo_meses} meses` : null },
-            { label: 'Encargos a.a.', value: projeto.dados.encargos_ao_ano ? `${projeto.dados.encargos_ao_ano}%` : null },
-          ].filter(item => item.value).map(item => (
-            <div key={item.label} className="bg-zinc-50 rounded-lg px-3 py-2.5">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-400">{item.label}</p>
-              <p className="text-sm text-zinc-700 mt-0.5 truncate">{item.value}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Sent to bank toggle */}
-      <div className={`flex items-center justify-between rounded-xl border px-4 py-3 ${enviada ? 'bg-emerald-50 border-emerald-200' : 'bg-zinc-50 border-zinc-200'}`}>
-        <div className="flex items-center gap-2">
-          {enviada
-            ? <CheckCircle className="h-4 w-4 text-emerald-500" />
-            : <Send className="h-4 w-4 text-zinc-400" />}
-          <div>
-            <p className={`text-sm font-medium ${enviada ? 'text-emerald-700' : 'text-zinc-600'}`}>
-              {enviada ? 'Proposta entregue ao banco' : 'Proposta ainda não entregue ao banco'}
-            </p>
-            <p className="text-[10px] text-zinc-400 mt-0.5">Marque quando os documentos forem fisicamente entregues</p>
-          </div>
-        </div>
-        <Button
-          size="sm"
-          variant={enviada ? 'outline' : 'default'}
-          onClick={() => onToggleEnviada(!enviada)}
-        >
-          {enviada ? 'Desfazer' : 'Marcar como entregue'}
-        </Button>
       </div>
     </div>
   )

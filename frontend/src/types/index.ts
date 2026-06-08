@@ -45,6 +45,20 @@ export interface MinhaInfo {
   atualizado_em: string
 }
 
+export interface SpcExtra {
+  nome_fazenda: string
+  area_total: string
+  area_aproveitavel: string
+  car: string
+  nirf: string
+  matricula: string
+  cartorio: string
+  objetivo_projeto: string
+  memoria_tecnica: string
+  localizacao: string
+  data_inicio: string
+}
+
 export interface FreeItem {
   discriminacao: string
   area: string
@@ -131,6 +145,7 @@ export interface WizardFormData {
   producao_leite: string
   comentarios: string
   _step?: number
+  spc_extra?: SpcExtra
 }
 
 export interface ReferenceData {

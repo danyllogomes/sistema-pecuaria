@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import {
   Download, CheckCircle, FileCode2, ChevronDown, ChevronUp,
-  User, MapPin, Briefcase, Package, FileText, Wand2,
+  User, MapPin, Briefcase, Package, FileText, Wand2, Save,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
-import type { Cliente, Projeto } from '@/types'
+import { updateProjetoDados } from '@/lib/supabase'
+import type { Cliente, Projeto, SpcExtra } from '@/types'
 
 interface Props {
   projeto: Projeto
@@ -14,19 +15,6 @@ interface Props {
   onToggleGerado: (v: boolean) => void
 }
 
-interface SpcExtra {
-  nome_fazenda: string
-  area_total: string
-  area_aproveitavel: string
-  car: string
-  nirf: string
-  matricula: string
-  cartorio: string
-  objetivo_projeto: string
-  memoria_tecnica: string
-  localizacao: string
-  data_inicio: string
-}
 
 function Field({ label, value }: { label: string; value: string | undefined | null }) {
   if (!value) return null
@@ -154,8 +142,9 @@ const EMPTY: SpcExtra = {
 }
 
 export function ExportarSPC({ projeto, cliente, gerado, onToggleGerado }: Props) {
-  const [extra, setExtra] = useState<SpcExtra>(EMPTY)
+  const [extra, setExtra] = useState<SpcExtra>({ ...EMPTY, ...projeto.dados?.spc_extra })
   const [downloading, setDownloading] = useState(false)
+  const [saving, setSaving] = useState(false)
   const d = projeto.dados
 
   const set = (k: keyof SpcExtra) => (v: string) => setExtra(prev => ({ ...prev, [k]: v }))
@@ -201,6 +190,19 @@ export function ExportarSPC({ projeto, cliente, gerado, onToggleGerado }: Props)
       toast((err as Error).message, 'destructive')
     } finally {
       setDownloading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    if (!d) return
+    setSaving(true)
+    try {
+      await updateProjetoDados(projeto.id, { ...d, spc_extra: extra })
+      toast('Dados do SPC salvos com sucesso!')
+    } catch (err: unknown) {
+      toast((err as Error).message, 'destructive')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -355,6 +357,10 @@ export function ExportarSPC({ projeto, cliente, gerado, onToggleGerado }: Props)
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
+          <Button size="sm" variant="outline" onClick={handleSave} disabled={saving}>
+            <Save className="h-3.5 w-3.5" />
+            {saving ? 'Salvando…' : 'Salvar'}
+          </Button>
           {gerado && (
             <Button size="sm" variant="ghost" className="text-zinc-400" onClick={() => onToggleGerado(false)}>
               Desfazer
