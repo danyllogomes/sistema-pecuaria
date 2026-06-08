@@ -17,7 +17,10 @@ TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), 'Planilha_Custeio_Pecuar
 
 # ── Reference data loaded once at startup (with JSON cache) ────────────────────
 
-CACHE_PATH = os.path.join(os.path.dirname(__file__), 'reference_cache.json')
+_CACHE_PATHS = [
+    os.path.join(os.path.dirname(__file__), 'reference_cache.json'),
+    '/tmp/reference_cache.json',
+]
 
 def _extract_from_xlsm():
     """Read reference tables from the .xlsm template (slow — runs once)."""
@@ -115,19 +118,30 @@ def _extract_from_xlsm():
 def _load_reference_data():
     template_mtime = os.path.getmtime(TEMPLATE_PATH)
 
-    # Use cache if it exists and is newer than the template
-    if os.path.exists(CACHE_PATH):
-        cache_mtime = os.path.getmtime(CACHE_PATH)
-        if cache_mtime >= template_mtime:
-            print("Carregando cache de referência…")
-            with open(CACHE_PATH, 'r', encoding='utf-8') as f:
-                return json.load(f)
+    # Try each candidate cache path (project dir first, then /tmp)
+    for path in _CACHE_PATHS:
+        if os.path.exists(path):
+            try:
+                if os.path.getmtime(path) >= template_mtime:
+                    print(f"Carregando cache de referência de {path}…")
+                    with open(path, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+            except Exception:
+                continue
 
     print("Extraindo dados da planilha (primeira vez — pode demorar ~60s)…")
     data = _extract_from_xlsm()
-    with open(CACHE_PATH, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
-    print("Cache salvo em reference_cache.json")
+
+    # Persist cache wherever we can write (fails silently on read-only filesystems)
+    for path in _CACHE_PATHS:
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            print(f"Cache salvo em {path}")
+            break
+        except OSError:
+            continue
+
     return data
 
 

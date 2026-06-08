@@ -1,0 +1,20 @@
+{
+  "builds": [
+    {
+      "src": "app.py",
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": [
+          "spc_writer.py",
+          "Planilha_Custeio_Pecuario.xlsm",
+          "template_bnb.mdb",
+          "reference_cache.json",
+          "static/dist/**"
+        ]
+      }
+    }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "app.py" }
+  ]
+}
