@@ -2,7 +2,7 @@ import io
 import json
 import os
 import openpyxl
-import anthropic
+import openai
 from datetime import date
 from dotenv import load_dotenv
 from flask import Flask, request, send_file, jsonify, send_from_directory
@@ -331,9 +331,9 @@ def melhorar_texto():
     if not texto:
         return jsonify({'error': 'Texto vazio'}), 400
 
-    api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+    api_key = os.environ.get('OPENAI_API_KEY', '')
     if not api_key or api_key == 'sua-chave-aqui':
-        return jsonify({'error': 'ANTHROPIC_API_KEY não configurada'}), 500
+        return jsonify({'error': 'OPENAI_API_KEY não configurada'}), 500
 
     descricoes = {
         'objetivo':  'objetivo do projeto de crédito rural',
@@ -364,15 +364,17 @@ def melhorar_texto():
     )
 
     try:
-        client = anthropic.Anthropic(api_key=api_key)
-        msg = client.messages.create(
-            model='claude-haiku-4-5-20251001',
+        client = openai.OpenAI(api_key=api_key)
+        msg = client.chat.completions.create(
+            model='gpt-4o-mini',
             max_tokens=1024,
-            system=system,
-            messages=[{'role': 'user', 'content': prompt}],
+            messages=[
+                {'role': 'system', 'content': system},
+                {'role': 'user',   'content': prompt},
+            ],
         )
-        return jsonify({'texto': msg.content[0].text})
-    except anthropic.APIError as e:
+        return jsonify({'texto': msg.choices[0].message.content})
+    except openai.APIError as e:
         return jsonify({'error': str(e)}), 502
 
 
