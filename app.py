@@ -2,9 +2,13 @@ import io
 import json
 import os
 import openpyxl
+import anthropic
 from datetime import date
+from dotenv import load_dotenv
 from flask import Flask, request, send_file, jsonify, send_from_directory
 from spc_writer import build_spc
+
+load_dotenv()
 
 DIST_DIR = os.path.join(os.path.dirname(__file__), 'static', 'dist')
 
@@ -315,6 +319,61 @@ def gerar():
         as_attachment=True,
         download_name=filename,
     )
+
+
+@app.route('/api/melhorar-texto', methods=['POST'])
+def melhorar_texto():
+    data = request.get_json(force=True)
+    campo  = data.get('campo', '')
+    texto  = (data.get('texto') or '').strip()
+    ctx    = data.get('contexto', {})
+
+    if not texto:
+        return jsonify({'error': 'Texto vazio'}), 400
+
+    api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+    if not api_key or api_key == 'sua-chave-aqui':
+        return jsonify({'error': 'ANTHROPIC_API_KEY não configurada'}), 500
+
+    descricoes = {
+        'objetivo':  'objetivo do projeto de crédito rural',
+        'memoria':   'memória de cálculo e tecnologia adotada no projeto',
+        'localizacao': 'localização e descrição do imóvel rural',
+    }
+    tipo = descricoes.get(campo, 'texto técnico de projeto rural')
+
+    ctx_lines = [
+        f"Beneficiário: {ctx['nome_cliente']}" if ctx.get('nome_cliente') else '',
+        f"Atividade: {ctx['atividade_principal']}" if ctx.get('atividade_principal') else '',
+        f"Município/UF: {ctx['municipio_uf']}" if ctx.get('municipio_uf') else '',
+        f"Programa: {ctx['programa_credito']}" if ctx.get('programa_credito') else '',
+    ]
+    contexto_str = '\n'.join(l for l in ctx_lines if l)
+
+    system = (
+        'Você é um redator especializado em projetos de crédito rural para o BNB (Banco do Nordeste do Brasil). '
+        'Melhore o texto fornecido tornando-o mais técnico, formal e adequado para um projeto oficial de financiamento agrícola. '
+        'Preserve todas as informações originais — apenas aprimore a redação, a clareza e o nível técnico. '
+        'Responda SOMENTE com o texto melhorado, sem prefixos, explicações ou aspas.'
+    )
+    prompt = (
+        f'Contexto do projeto:\n{contexto_str}\n\n'
+        f'Campo: {tipo}\n\n'
+        f'Texto original:\n{texto}\n\n'
+        f'Texto melhorado:'
+    )
+
+    try:
+        client = anthropic.Anthropic(api_key=api_key)
+        msg = client.messages.create(
+            model='claude-haiku-4-5-20251001',
+            max_tokens=1024,
+            system=system,
+            messages=[{'role': 'user', 'content': prompt}],
+        )
+        return jsonify({'texto': msg.content[0].text})
+    except anthropic.APIError as e:
+        return jsonify({'error': str(e)}), 502
 
 
 @app.route('/api/gerar-spc', methods=['POST'])

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import {
   Download, CheckCircle, FileCode2, ChevronDown, ChevronUp,
-  User, MapPin, Briefcase, Package, FileText,
+  User, MapPin, Briefcase, Package, FileText, Wand2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
@@ -63,17 +63,55 @@ function Section({
 }
 
 function Textarea({
-  label, value, onChange, placeholder, rows = 3,
+  label, value, onChange, placeholder, rows = 3, campo, contexto,
 }: {
   label: string
   value: string
   onChange: (v: string) => void
   placeholder?: string
   rows?: number
+  campo: string
+  contexto: Record<string, string>
 }) {
+  const [improving, setImproving] = useState(false)
+
+  const handleImprove = async () => {
+    if (!value.trim()) { toast('Escreva algo antes de melhorar', 'destructive'); return }
+    setImproving(true)
+    try {
+      const res = await fetch('/api/melhorar-texto', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campo, texto: value, contexto }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? res.statusText)
+      onChange(json.texto)
+      toast('Texto melhorado com sucesso!')
+    } catch (err: unknown) {
+      toast((err as Error).message, 'destructive')
+    } finally {
+      setImproving(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">{label}</label>
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">{label}</label>
+        <button
+          type="button"
+          onClick={handleImprove}
+          disabled={improving}
+          title="Melhorar com IA"
+          className="flex items-center gap-1 text-[10px] font-medium text-violet-500 hover:text-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        >
+          {improving
+            ? <span className="h-3 w-3 rounded-full border-2 border-violet-300 border-t-violet-600 animate-spin inline-block" />
+            : <Wand2 className="h-3 w-3" />}
+          {improving ? 'Melhorando…' : 'Melhorar'}
+        </button>
+      </div>
       <textarea
         value={value}
         onChange={e => onChange(e.target.value)}
@@ -262,6 +300,13 @@ export function ExportarSPC({ projeto, cliente, gerado, onToggleGerado }: Props)
             onChange={set('objetivo_projeto')}
             placeholder="Descreva o objetivo principal do projeto…"
             rows={4}
+            campo="objetivo"
+            contexto={{
+              nome_cliente: d.nome_cliente ?? '',
+              atividade_principal: d.atividade_principal ?? '',
+              municipio_uf: d.municipio_uf ?? '',
+              programa_credito: d.programa_credito ?? '',
+            }}
           />
           <Textarea
             label="Memória de Cálculo / Tecnologia Adotada"
@@ -269,6 +314,13 @@ export function ExportarSPC({ projeto, cliente, gerado, onToggleGerado }: Props)
             onChange={set('memoria_tecnica')}
             placeholder="Descreva a tecnologia e metodologia adotada…"
             rows={4}
+            campo="memoria"
+            contexto={{
+              nome_cliente: d.nome_cliente ?? '',
+              atividade_principal: d.atividade_principal ?? '',
+              municipio_uf: d.municipio_uf ?? '',
+              programa_credito: d.programa_credito ?? '',
+            }}
           />
           <Textarea
             label="Localização e Descrição do Imóvel"
@@ -276,6 +328,13 @@ export function ExportarSPC({ projeto, cliente, gerado, onToggleGerado }: Props)
             onChange={set('localizacao')}
             placeholder="Descreva a localização e características do imóvel…"
             rows={3}
+            campo="localizacao"
+            contexto={{
+              nome_cliente: d.nome_cliente ?? '',
+              atividade_principal: d.atividade_principal ?? '',
+              municipio_uf: d.municipio_uf ?? '',
+              nome_fazenda: extra.nome_fazenda,
+            }}
           />
         </div>
       </Section>
