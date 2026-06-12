@@ -436,6 +436,7 @@ def gerar_spc():
             nm_bnf=nm_bnf,
             items=items,
             dt_ini=dt_ini,
+            extra=data,
         )
     except Exception as e:
         return jsonify({'error': str(e)}), 500

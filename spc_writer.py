@@ -186,6 +186,39 @@ def _rewrite_orca_page(mdb: bytearray, items: list, cd_prj: str, dt_ini_days: fl
     struct.pack_into('<I', mdb, td + 16, n)
 
 
+# ---------- template placeholder constants (lengths are fixed) ----------
+
+_PH_CONFRONTANTES = (
+    'Norte: leito do Rio Cuitegi;'
+    '                                                                           '
+    'Sul:Estrada carroçavel Guarabira-Maciel'
+    '                                                         '
+    'Leste: Terras do Imóvel santo antônio'
+    '                                                             '
+    'Oeste: José Felix e José Tranquilino.'
+)  # 335 chars
+
+_PH_OBJETIVO = (
+    'Implantar a produção de frangos de corte mediante a construção de oito aviários '
+    'tipos pressão negativa com capacidade máxima de quarenta e cinco  mil aves alojadas '
+    'por aviário localizados na Fazenda Maciel em Guarabira (PB). Cada aviário terá a '
+    'dimensão de 18 metros de largura por 165 metros de comprimento e 2,5 metros de '
+    'altura com sistema automatizado de ração, água e temperatura ambiente para atender '
+    'a demanda do abatedouro da empresa GUARAVES Ltda.'
+)  # 456 chars
+
+_PH_MEMORIA = (
+    'O projeto será na propriedade Fazenda Maciel no município de Guarabira/PB '
+    'e terá uma produção anual de 2.016.000 aves em seis ciclos de sessenta dias.'
+)  # 150 chars
+
+
+def _p(mdb: bytearray, old: str, new: str) -> None:
+    """Patch only if new value is non-empty."""
+    if new and new.strip():
+        _patch_text_cu(mdb, old, new)
+
+
 # ---------- public API ----------
 
 def build_spc(
@@ -194,16 +227,19 @@ def build_spc(
     nm_bnf: str,
     items: list,
     dt_ini: Optional[date] = None,
+    extra: Optional[dict] = None,
 ) -> bytes:
     """Return the bytes of a `.SPC` file (ZIP) for the given proposal data.
 
     Args:
-        nome_cli: client full name (for T033CLIE / T033BCLI patches)
-        cpf_cli:  CPF without punctuation, 11 digits (used to build CD_PRJ)
-        nm_bnf:   beneficiary full name (may equal nome_cli)
-        items:    list of investment item dicts (see _rewrite_orca_page)
-        dt_ini:   investment start date (defaults to today)
+        nome_cli:  client full name (T033CLIE / T033BCLI)
+        cpf_cli:   CPF without punctuation, 11 digits (builds CD_PRJ)
+        nm_bnf:    beneficiary full name (may equal nome_cli)
+        items:     list of investment item dicts (see _rewrite_orca_page)
+        dt_ini:    investment start date (defaults to today)
+        extra:     dict with additional SPC fields (SpcExtra + wizard data)
     """
+    extra = extra or {}
     cpf_clean = ''.join(c for c in cpf_cli if c.isdigit())[:11].ljust(11, '0')
     cd_prj_new = cpf_clean + 'PRJ'  # 14 chars, same length as template
     cd_prj_old = '26057579520PRJ'
@@ -219,16 +255,43 @@ def build_spc(
     # 1. Replace CD_PRJ everywhere (same length, safe direct patch)
     _patch_all(mdb, _cu(cd_prj_old), _cu(cd_prj_new))
 
-    # 2. Patch client/beneficiary names (padded to original length)
+    # 2. Patch client/beneficiary names
     _patch_text_cu(mdb, 'Thiago Coutinho de Sousa', nome_cli)
     if nm_bnf != nome_cli:
-        _patch_text_cu(mdb, nome_cli, nm_bnf)  # second pass if different
+        _patch_text_cu(mdb, nome_cli, nm_bnf)
 
-    # 3. Rewrite T033ORCA data page with the caller's items
+    # 3. Wizard fields patched into client/project tables
+    _p(mdb, 'Rod PB 075',                   extra.get('endereco', ''))
+    _p(mdb, 'Produçao de frango de corte.', extra.get('atividade_principal', ''))
+
+    # 4. Imóvel Rural (T033IMOV)
+    _p(mdb, 'Imóvel Rural Denominado Maciel',            extra.get('nome_fazenda', ''))
+    _p(mdb, 'Guarabira',                                 extra.get('municipio_imovel', ''))
+    _p(mdb, 'Cartorio Distrital de Araçagi',             extra.get('cartorio', ''))
+    _p(mdb, 'R7 985',                                    extra.get('matricula', ''))
+    _p(mdb, 'Franco arenoso;',                           extra.get('tipo_solo', ''))
+    _p(mdb, 'Terra batida',                              extra.get('tipo_acesso', ''))
+    _p(mdb, 'Fazenda Maciel próxima a fazenda Sapucaia.',extra.get('localizacao', ''))
+    _p(mdb, 'Ivanildo Coutinho Sousa',                   extra.get('proprietario_imovel', ''))
+
+    # 5. Confrontantes (Norte / Sul / Leste / Oeste combined into 335-char field)
+    norte = extra.get('confrontante_norte', '')
+    sul   = extra.get('confrontante_sul', '')
+    leste = extra.get('confrontante_leste', '')
+    oeste = extra.get('confrontante_oeste', '')
+    if any([norte, sul, leste, oeste]):
+        cfr = f"Norte: {norte}   Sul: {sul}   Leste: {leste}   Oeste: {oeste}"
+        _patch_text_cu(mdb, _PH_CONFRONTANTES, cfr)
+
+    # 6. Project texts (T033OBJT / T033COBS)
+    _p(mdb, _PH_OBJETIVO, extra.get('objetivo_projeto', ''))
+    _p(mdb, _PH_MEMORIA,  extra.get('memoria_tecnica', ''))
+
+    # 7. Rewrite T033ORCA data page with the caller's items
     if items:
         _rewrite_orca_page(mdb, items, cd_prj_new, dt_ini_days)
 
-    # 4. Pack into ZIP with the required path
+    # 8. Pack into ZIP with the required path
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.writestr('SISTEMAS/S033/VERSAO2/exporta/completo.mdb', bytes(mdb))

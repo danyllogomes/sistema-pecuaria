@@ -53,6 +53,15 @@ export interface SpcExtra {
   nirf: string
   matricula: string
   cartorio: string
+  municipio_imovel: string
+  tipo_imovel: string
+  tipo_solo: string
+  tipo_acesso: string
+  proprietario_imovel: string
+  confrontante_norte: string
+  confrontante_sul: string
+  confrontante_leste: string
+  confrontante_oeste: string
   objetivo_projeto: string
   memoria_tecnica: string
   localizacao: string

@@ -137,6 +137,10 @@ function Input({
 const EMPTY: SpcExtra = {
   nome_fazenda: '', area_total: '', area_aproveitavel: '',
   car: '', nirf: '', matricula: '', cartorio: '',
+  municipio_imovel: '', tipo_imovel: '', tipo_solo: '', tipo_acesso: '',
+  proprietario_imovel: '',
+  confrontante_norte: '', confrontante_sul: '',
+  confrontante_leste: '', confrontante_oeste: '',
   objetivo_projeto: '', memoria_tecnica: '', localizacao: '',
   data_inicio: '',
 }
@@ -281,7 +285,41 @@ export function ExportarSPC({ projeto, cliente, gerado, onToggleGerado }: Props)
       <Section icon={MapPin} title="Dados do Imóvel Rural" defaultOpen>
         <div className="grid grid-cols-2 gap-3">
           <div className="col-span-2">
-            <Input label="Nome da Fazenda / Imóvel" value={extra.nome_fazenda} onChange={set('nome_fazenda')} placeholder="Ex: Fazenda Boa Vista" />
+            <Input label="Nome / Descrição do Imóvel (máx 30 chars)" value={extra.nome_fazenda} onChange={set('nome_fazenda')} placeholder="Ex: Imóvel Rural Denominado Boa Vista" />
+          </div>
+          <Input label="Município do Imóvel" value={extra.municipio_imovel} onChange={set('municipio_imovel')} placeholder="Ex: Guarabira" />
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Tipo de Imóvel</label>
+            <select
+              value={extra.tipo_imovel}
+              onChange={e => set('tipo_imovel')(e.target.value)}
+              className="h-9 rounded-lg border border-zinc-200 px-3 text-sm text-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-400 bg-white"
+            >
+              <option value="">Selecione…</option>
+              {['Fazenda','Sítio','Chácara','Granja','Estabelecimento Rural'].map(o => <option key={o}>{o}</option>)}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Tipo de Solo</label>
+            <select
+              value={extra.tipo_solo}
+              onChange={e => set('tipo_solo')(e.target.value)}
+              className="h-9 rounded-lg border border-zinc-200 px-3 text-sm text-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-400 bg-white"
+            >
+              <option value="">Selecione…</option>
+              {['Franco arenoso','Argiloso','Arenoso','Argilo-arenoso','Latossolo','Luvissolo'].map(o => <option key={o}>{o}</option>)}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">Tipo de Acesso</label>
+            <select
+              value={extra.tipo_acesso}
+              onChange={e => set('tipo_acesso')(e.target.value)}
+              className="h-9 rounded-lg border border-zinc-200 px-3 text-sm text-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-400 bg-white"
+            >
+              <option value="">Selecione…</option>
+              {['Asfalto','Terra batida','Paralelepípedo','Calçamento','Vicinal'].map(o => <option key={o}>{o}</option>)}
+            </select>
           </div>
           <Input label="Área Total (ha)" value={extra.area_total} onChange={set('area_total')} type="number" placeholder="0,00" />
           <Input label="Área Aproveitável (ha)" value={extra.area_aproveitavel} onChange={set('area_aproveitavel')} type="number" placeholder="0,00" />
@@ -289,7 +327,18 @@ export function ExportarSPC({ projeto, cliente, gerado, onToggleGerado }: Props)
           <Input label="NIRF" value={extra.nirf} onChange={set('nirf')} placeholder="Nº Imóvel Receita Federal" />
           <Input label="Matrícula" value={extra.matricula} onChange={set('matricula')} placeholder="Nº de matrícula" />
           <Input label="Cartório" value={extra.cartorio} onChange={set('cartorio')} placeholder="Nome do cartório" />
+          <Input label="Proprietário do Imóvel" value={extra.proprietario_imovel} onChange={set('proprietario_imovel')} placeholder="Se diferente do beneficiário" />
           <Input label="Data de Início do Investimento" value={extra.data_inicio} onChange={set('data_inicio')} type="date" />
+        </div>
+      </Section>
+
+      {/* New: Confrontantes */}
+      <Section icon={MapPin} title="Confrontantes do Imóvel">
+        <div className="grid grid-cols-2 gap-3">
+          <Input label="Norte" value={extra.confrontante_norte} onChange={set('confrontante_norte')} placeholder="Ex: Rio Cuitegi" />
+          <Input label="Sul" value={extra.confrontante_sul} onChange={set('confrontante_sul')} placeholder="Ex: Estrada carroçável" />
+          <Input label="Leste" value={extra.confrontante_leste} onChange={set('confrontante_leste')} placeholder="Ex: Terras de João Silva" />
+          <Input label="Oeste" value={extra.confrontante_oeste} onChange={set('confrontante_oeste')} placeholder="Ex: Terras de Maria Souza" />
         </div>
       </Section>
 
